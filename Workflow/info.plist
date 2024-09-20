@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.vitorgalvao.alfred.librarysounds</string>
+	<key>connections</key>
+	<dict>
+		<key>35A5D64F-1CD9-4C72-95C6-308E4E2C9504</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A7ED3CE1-8FC2-44EF-B182-8A1145F9F6D1</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>24AF9612-7191-40B5-BB24-C2A420A74191</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>9F2CDDA4-AEBF-4D31-AE2B-0B2C1402DCCA</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>9F2CDDA4-AEBF-4D31-AE2B-0B2C1402DCCA</key>
+		<array/>
+		<key>C2FC88B5-516C-429D-AD48-BCE78618DB6C</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A7ED3CE1-8FC2-44EF-B182-8A1145F9F6D1</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<true/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>35A5D64F-1CD9-4C72-95C6-308E4E2C9504</string>
+				<key>modifiers</key>
+				<integer>1048576</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<true/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Vítor Galvão</string>
+	<key>description</key>
+	<string>Listen to and pick Library Sounds</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Library Sounds</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<true/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>/usr/bin/afplay "${1}"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>11</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>A7ED3CE1-8FC2-44EF-B182-8A1145F9F6D1</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>count</key>
+				<integer>1</integer>
+				<key>keychar</key>
+				<string>↓</string>
+				<key>keycode</key>
+				<integer>125</integer>
+				<key>keymod</key>
+				<integer>10485760</integer>
+				<key>overridewithargument</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.output.dispatchkeycombo</string>
+			<key>uid</key>
+			<string>24AF9612-7191-40B5-BB24-C2A420A74191</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>{var:sounds_keyword}</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Finding sound files…</string>
+				<key>script</key>
+				<string>// Helpers
+function envVar(varName) {
+  return $.NSProcessInfo
+    .processInfo
+    .environment
+    .objectForKey(varName).js
+}
+
+function dirContents(path) {
+  try {
+    return $.NSFileManager.defaultManager.contentsOfDirectoryAtURLIncludingPropertiesForKeysOptionsError(
+      $.NSURL.fileURLWithPath(path),
+      undefined,
+      $.NSDirectoryEnumerationSkipsHiddenFiles, undefined).js.map(p =&gt; p.path.js)
+  } catch {
+    return []
+  }
+}
+
+// Main
+const favouriteSounds = envVar("favourite_sounds").split("\n")
+
+const allSounds = dirContents("/System/Library/Sounds")
+  .concat(dirContents($("~/Library/Sounds").stringByExpandingTildeInPath.js))
+  .sort()
+
+const sortedSounds = allSounds.toSorted((a, b) =&gt; {
+  const first = favouriteSounds.indexOf(a)
+  if (first === -1) return true
+  const second = favouriteSounds.indexOf(b)
+  if (second === -1) return false
+  return first &gt; second
+})
+
+const sfItems = sortedSounds.map(file =&gt; {
+  const isFavourite = favouriteSounds.includes(file)
+
+  return {
+    uid: file,
+    title: $(file).stringByDeletingPathExtension.lastPathComponent.js,
+    subtitle: file,
+    arg: file,
+    icon: { path: isFavourite ? "images/favourite.png" : "icon.png" },
+    mods: { cmd: isFavourite ?
+      { variables: { favourite_action: "remove" }, subtitle: "Remove from favourites" } :
+      { variables: { favourite_action: "add" }, subtitle: "Add to favourites" }
+    }
+  }
+})
+
+JSON.stringify({
+  rerun: 0.1,
+  skipknowledge: true,
+  items: sfItems
+})</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>skipuniversalaction</key>
+				<true/>
+				<key>subtext</key>
+				<string>{const:alfred_workflow_description}</string>
+				<key>title</key>
+				<string>{const:alfred_workflow_name}</string>
+				<key>type</key>
+				<integer>7</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>C2FC88B5-516C-429D-AD48-BCE78618DB6C</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.junction</string>
+			<key>uid</key>
+			<string>35A5D64F-1CD9-4C72-95C6-308E4E2C9504</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<true/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>// Helpers
+function envVar(varName) {
+  return $.NSProcessInfo
+    .processInfo
+    .environment
+    .objectForKey(varName).js
+}
+
+// Main
+function run(argv) {
+  const soundFile = argv[0]
+  const modeRemove = envVar("favourite_action") === "remove" // Either "add" to add to list or "remove" to remove from it
+
+  // Set favourites
+  const origFavourites = envVar("favourite_sounds")?.split("\n")?.filter(entry =&gt; entry) || [] // Split and remove empty entries
+  const favourites = modeRemove ?
+    origFavourites.filter(entry =&gt; entry !== soundFile) :
+    origFavourites.concat(soundFile)
+
+  Application("com.runningwithcrayons.Alfred").setConfiguration(
+    "favourite_sounds",
+    { toValue: [...new Set(favourites)].join("\n"), inWorkflow: envVar("alfred_workflow_bundleid") }
+  )
+}</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>9F2CDDA4-AEBF-4D31-AE2B-0B2C1402DCCA</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>## Usage
+
+Search sound files in `/System/Library/Sounds` and `~/Library/Sounds` via the `sounds` keyword.
+
+![Listing sounds](images/about/sounds.png)
+
+* &lt;kbd&gt;↩&lt;/kbd&gt; Play sound.
+* &lt;kbd&gt;⌘&lt;/kbd&gt;&lt;kbd&gt;↩&lt;/kbd&gt; Add or remove from favourites.
+
+Favourites show up at the top of the list and can be manually ordered in the [Workflow’s Configuration](https://www.alfredapp.com/help/workflows/user-configuration/).</string>
+	<key>uidata</key>
+	<dict>
+		<key>24AF9612-7191-40B5-BB24-C2A420A74191</key>
+		<dict>
+			<key>xpos</key>
+			<real>395</real>
+			<key>ypos</key>
+			<real>185</real>
+		</dict>
+		<key>35A5D64F-1CD9-4C72-95C6-308E4E2C9504</key>
+		<dict>
+			<key>xpos</key>
+			<real>265</real>
+			<key>ypos</key>
+			<real>215</real>
+		</dict>
+		<key>9F2CDDA4-AEBF-4D31-AE2B-0B2C1402DCCA</key>
+		<dict>
+			<key>xpos</key>
+			<real>395</real>
+			<key>ypos</key>
+			<real>325</real>
+		</dict>
+		<key>A7ED3CE1-8FC2-44EF-B182-8A1145F9F6D1</key>
+		<dict>
+			<key>xpos</key>
+			<real>395</real>
+			<key>ypos</key>
+			<real>45</real>
+		</dict>
+		<key>C2FC88B5-516C-429D-AD48-BCE78618DB6C</key>
+		<dict>
+			<key>xpos</key>
+			<real>60</real>
+			<key>ypos</key>
+			<real>185</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>sounds</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Sounds Keyword</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>sounds_keyword</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string></string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+				<key>verticalsize</key>
+				<integer>6</integer>
+			</dict>
+			<key>description</key>
+			<string>Newline-separated sound files to list at the top.</string>
+			<key>label</key>
+			<string>Favourites</string>
+			<key>type</key>
+			<string>textarea</string>
+			<key>variable</key>
+			<string>favourite_sounds</string>
+		</dict>
+	</array>
+	<key>version</key>
+	<string>2024.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/vitorgalvao/library-sounds-workflow/</string>
+</dict>
+</plist>
